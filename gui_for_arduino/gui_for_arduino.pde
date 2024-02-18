@@ -3,16 +3,14 @@
  1. "r2d2hq.png" image of R2D2
  ******** LIBRARIES ADDED ********
  1. "ControlP5" adds buttons
- 2. "Video Library for Processing 4" adds video control
  ******** KNOWN ISSUES ******** 
  1. Kinda just randomly breaks when running more than once
 */
 
 import controlP5.*;  // gives button control
-//import processing.video.*; // intro video to be added
 
 ControlP5 cp5;
-//Movie movie;
+
 PFont font;
 PImage img; 
 
@@ -32,8 +30,7 @@ void setup(){
   font = createFont("times new roman", 24); 
   img = loadImage("r2d2hq.png");
   
-  //movie = new Movie(this, "intro_video.mov");
-  //movie.play();
+
   startup();
   addButtons();
   strokeWeight(20);
@@ -51,12 +48,6 @@ void draw(){
   }
   
   background(r,g,b);
-  //strokeWeight(20);
-  //stroke(0,0,255);
-  //line(0,10, w, 10);
-  //line(10,10, 10, h);
-  //line(w-10, 10, w-10, h);
-  //line(w-10, h-10, 0, h-10);
   textSize(26);
   rectMode(CENTER);
   fill(0,0,255);
@@ -75,7 +66,7 @@ void startup(){
   textFont(font);
   text("Welcome to R2-Z2" ,50,120); 
   text("Group Z2's 2E10 Project", 50, 150);
-  //text( "> Continue", 50, 300);
+  //text( "> Continue", 50, 300); // could add a continue button on start screen instead of timer 
   //stroke(255,255,255);
   //line(70,305, 160,305);
   
