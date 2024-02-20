@@ -1,6 +1,7 @@
 /* WORKS WITH LATEST CODE IN WIFI-COMMUNICATION, SENDS W WHEN START IS PRESSED, S WHEN STOP IS PRESSED
+   Connect laptop to the AP created by the Arduino before running the Processing GUI.
  ******** FILES INCLUDED ********
- 1. "r2d2hq.png" image of R2D2 for startup screen
+ 1. "r2d2hq.png" image of R2D2 for startup screen 
  ******** LIBRARIES ADDED ********
  1. "ControlP5" adds buttons
  2. "processing.net.*" allows wifi communication
