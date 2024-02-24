@@ -27,6 +27,7 @@ int g=255;
 int b=255; 
 int w = 800; // window width
 int h = 576; // window height
+float travDistance = 0;
   
 void setup(){
   size (800,576); // (width,height)
@@ -51,7 +52,15 @@ void draw(){
   if ((dataC == 'o') || (dataC == 'z')) // filters out null and other random chars being read in
   dataB = dataC;
   if (dataB != 'z')
-    text("Objected SPotted!", 400,100);
+    text("Objected Spotted!", 400,100);
+
+    text("Distance Travelled:", 350,250);
+    
+  if(dataC == '+')
+    travDistance += 0.1;
+  
+  text(travDistance,485,250);
+  text('m',530,250);
    
   fill(0);
   textAlign(CENTER);
@@ -67,6 +76,7 @@ void draw(){
     drawX(connectionW, connectionH, connectionR);
   /* This can take some time to register, as I believe it tries to 
     reconnect to the server after disconnecting, which takes quite some time */
+    
 }
 
 void startup(){ 
