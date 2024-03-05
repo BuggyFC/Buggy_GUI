@@ -2,6 +2,7 @@
  ******** FILES INCLUDED ********
  1. "r2d2hq.png" image of R2D2 for startup screen
  2. "r2d2bg.png" pixel art r2d2 background for main screen
+ 3. "c3po.png" pixel art c3po for Obstacle Detected pop-up
  ******** LIBRARIES ADDED ********
  1. "ControlP5" adds buttons
  2. "processing.net.*" allows wifi communication
@@ -18,8 +19,6 @@ PFont font;
 PImage startupImg; // r2d2 image for startup screen
 PImage mainImg; // r2d2 image for main screen
 PImage c3poImg; // c3po pops up during obstacle detection
-PImage leftArrowImg;
-PImage rightArrowImg;
 char dataC;// read in from Server (Arduino)
 char dataB = 'z';  // filters out dataC for relevant chars
 int port = 5200; 
@@ -39,8 +38,6 @@ void setup(){
   startupImg = loadImage("r2d2hq.png"); 
   mainImg = loadImage("r2d2bg.png");
   c3poImg = loadImage("c3po.png");
-  leftArrowImg = loadImage("leftarrow.png");
-  rightArrowImg = loadImage("rightarrow.png");
   startup(); // displays intro screen
   addButtons(); // displays buttons after startup
 }
@@ -62,19 +59,14 @@ void draw(){
     text("Objected Spotted!", 400,100);
     image(c3poImg,525,75);
   }
-  
   if (dataC == 'r'){
     text("Turning", w - 55, 200);
     text("Right", w - 55, 220);
-    //imageMode(CENTER);
-    image(rightArrowImg, w-110, 100);
     currentTime = millis();
   }
   if (dataC == 'l'){
     text("Turning", 55, 200);
     text("Left", 55, 220);
-    //imageMode(CENTER);
-    image(leftArrowImg, 0, 100);
     currentTime = millis();
   }
   //dataC = '+';
@@ -99,7 +91,6 @@ void draw(){
     drawX(connectionW, connectionH, connectionR);
   /* This can take some time to register, as I believe it tries to 
     reconnect to the server after disconnecting, which takes quite some time */  
-  //line(w/2,0, w / 2, h);
 }
 
 void startup(){ 
@@ -156,8 +147,8 @@ void drawTick(float x1, float y1, float x2, float y2) {
   line(x1+5,y1+5,x2,y2);
 }
 void drawX(float x, float y, float size){
-stroke(255,0,0);
-strokeWeight(5);
-line(x - size / 2, y - size / 2, x + size / 2, y + size / 2);
-line(x - size / 2, y + size / 2, x + size / 2, y - size /2);
+  stroke(255,0,0);
+  strokeWeight(5);
+  line(x - size / 2, y - size / 2, x + size / 2, y + size / 2);
+  line(x - size / 2, y + size / 2, x + size / 2, y - size /2);
 }
