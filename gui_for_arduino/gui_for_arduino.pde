@@ -98,9 +98,9 @@ void draw() {
   else
     text("Mode: Reference Speed", 400, 90);
   text ("Object Distance (cm): " + objDistance, 400, 120);
-  text("Distance Travelled (m): " + travDistance, 400, 150);
-  text("Velocity (m/s): " + buggySpeed, 400, 180);
-  text("Reference Speed (m/s): " + referenceSpeed, 400, 210);
+  text("Distance Travelled (m): " + String.format("%.2f", travDistance), 400, 150);
+  text("Velocity (m/s): " + String.format("%.2f", buggySpeed), 400, 180);
+  text("Reference Speed (m/s): " +  referenceSpeed, 400, 210);
 
   int connectionW = 485;
   int connectionH = 50;
