@@ -12,80 +12,81 @@
 import controlP5.*;  // gives button control
 import processing.net.*; // allows wifi communication
 
-Client myClient; // GUI is client, Arduino is server
+Client client; // GUI is client, Arduino is server
 ControlP5 cp5;
 
 PFont font;
-PImage startupImg; // r2d2 image for startup screen
-PImage mainImg; // r2d2 image for main screen
-PImage c3poImg; // c3po pops up during obstacle detection
-char dataC; // read in from Server (Arduino)
-char dataB = 'z';  // filters out dataC for relevant chars
+PImage startup_image; // r2d2 image for startup screen
+PImage main_image; // r2d2 image for main screen
+PImage c3po_image; // c3po pops up during obstacle detection
+char data_char; // read in from Server (Arduino)
+char data_filter = 'z';  // filters out data_char for relevant chars
 int port = 5200;
-int currentTime; // counter for refreshing screen
-int itCount = 0; // iteration counter for draw loop
+int current_time; // counter for refreshing screen
+int it_count = 0; // iteration counter for draw loop
 int r=255;
 int g=255;
 int b=255;
 int w = 800; // window width
 int h = 576; // window height
-int connectionW = 485;
-int connectionH = 50;
-int connectionR = 15;
-int objDistance = 0;
-float travDistance = 0.0;
-float referenceSpeed = 0.0;
-float prevReferenceSpeed = 0.0;
-float buggySpeed = 0.0;
+int connection_w = 485;
+int connection_h = 50;
+int connection_r = 15;
+int obj_distance = 0;
+float trav_distance = 0.0;
+float reference_speed = 0.0;
+float prev_reference_speed = 0.0;
+float buggy_speed = 0.0;
 boolean stop = true;
-boolean followMode = false; // true = reference object, false = reference speed
-String data = "";
-String objD = "";
-String spd = "";
-String tDis = "";
+boolean follow_mode = false; // true = reference object, false = reference speed
+String data_string = "";
+String obj_string= "";
+String spd_string = "";
+String dis_string = "";
 
 void setup() {
   size (800, 576); // (width,height)
-  myClient = new Client(this, "192.168.4.1", 5200); //port 5200
+  client = new Client(this, "192.168.4.1", 5200); //port 5200
   font = createFont("hooge 05_55", 24);
-  startupImg = loadImage("r2d2hq.png");
-  mainImg = loadImage("r2d2bg.png");
-  c3poImg = loadImage("c3po.png");
+  startup_image = loadImage("r2d2hq.png");
+  main_image = loadImage("r2d2bg.png");
+  c3po_image = loadImage("c3po.png");
   startup(); // displays intro screen
   addButtons(); // displays buttons after startup
+  client.write('l');
 }
 
 void draw() {
-  itCount++;
-  if (itCount == 1) // required to prevent buttons from becoming too laggy
-    delay(2500); // delay between startup screen and main screen ONLY ON FIRST ITERATION OF DRAW
-  if ((millis() > currentTime + 1000)) // refreshes screen 1 second after a button is pressed
-    image(mainImg, 0, 0);
+  it_count++;
+  if (it_count == 1) // required to prevent buttons from becoming too laggy
+    delay(0); // delay between startup screen and main screen ONLY ON FIRST ITERATION OF DRAW
+  if ((millis() > current_time + 1000)) // refreshes screen 1 second after a button is pressed
+    image(main_image, 0, 0);
 
   receiveData();
-  if (objD != "")
-    objDistance = Integer.valueOf(objD);
-  if (spd != "")
-    buggySpeed = Float.valueOf(spd);
-  if (tDis != "")
-    travDistance = Float.valueOf(tDis);
+  if (obj_string!= "")
+    obj_distance = Integer.valueOf(obj_string);
+  if (spd_string != "")
+    buggy_speed = Float.valueOf(spd_string);
+  if (dis_string != "")
+    trav_distance = Float.valueOf(dis_string) / 100;
     
   objectSpotted(); // checks if object is spotted or not
-  referenceSpeed = cp5.getController("Speed").getValue();
-  referenceSpeed(); // sends reference speed to arduino
+  reference_speed = cp5.getController("Speed").getValue();
+  reference_speed(); // sends reference speed to arduino
   displayTelemetry(); 
 
-  if (myClient.active()) // if client is connected, draw a tick
-    drawTick(connectionW-5, connectionH, connectionW+10, connectionH-10);
+  if (client.active()) // if client is connected, draw a tick
+    drawTick(connection_w-5, connection_h, connection_w+10, connection_h-10);
   else  // if client is not connected, draw an X
-  drawX(connectionW, connectionH, connectionR);
+  drawX(connection_w, connection_h, connection_r);
   /* This can take some time to register, as I believe it tries to
    reconnect to the server after disconnecting, which takes quite some time */
 }
 
 void startup() {
   background(0, 0, 255);
-  image(startupImg, 0, 0);
+  image(startup_image, 0, 0);
   textSize(56);
   textFont(font);
   text("Welcome to R2-Z2", 50, 120);
@@ -114,7 +115,7 @@ void addButtons() { // displays buttons
   cp5.addSlider("Speed")
     .setPosition(200, 230)
     .setSize(400, 50)
-    .setRange(0.00, 0.25)
+    .setRange(0.05 , 0.15)
     .setColorBackground(color(4, 84, 168))
     .setNumberOfTickMarks(10)
     ;
@@ -125,10 +126,10 @@ void addButtons() { // displays buttons
     ;
 }
 void MODE() { // logic for mode button
-  followMode = !followMode;
-  if (followMode)
-    myClient.write('f');
-  else myClient.write('r');
+  follow_mode = !follow_mode;
+  if (follow_mode)
+    client.write('f');
+  else client.write('r');
 }
 
 void Speed() { // logic for reference speed slider
@@ -137,63 +138,63 @@ void Speed() { // logic for reference speed slider
 void STOP() { // logic for stop button
   stop = true;
   textAlign(CENTER);
-  currentTime = millis();
+  current_time = millis();
   fill(0, 0, 0);
-  if (myClient.active()) {
+  if (client.active()) {
     text("BUGGY STOPPED", 400, 370);
-    myClient.write('0');
+    client.write('0');
   } else noConnection() ;
 }
 
 void START() { // logic for start button
   textAlign(CENTER);
-  currentTime = millis();
+  current_time = millis();
   fill(0, 0, 0);
-  if (myClient.active()) {
+  if (client.active()) {
     text("BUGGY STARTED", 400, 340);
-    myClient.write('1');
+    client.write('1');
   } else noConnection();
   stop = false;
 }
 void receiveData(){
-  dataC = myClient.readChar(); // code for reading in data
-  if ( (dataC >= '0') && (dataC <= '9') || (dataC == '.') ) // filters to read in integers and floats
-    data = data + dataC;
+  data_char = client.readChar(); // code for reading in data
+  if ( (data_char >= '0') && (data_char <= '9') || (data_char == '.') ) // filters to read in integers and floats
+    data_string = data_string + data_char;
   // 'o' is received if object is spotted, 'z' is received if path is clear
-  if ( (dataC == 'o') || (dataC == 'z') ) // filters out null and other chars being read in
-    dataB = dataC;
-  if (dataC == 'd') { // code for reading in objDistance
-    if (data != "")
-      objD = data;
-    data = "";
+  if ( (data_char == 'o') || (data_char == 'z') ) // filters out null and other chars being read in
+    data_filter = data_char;
+  if (data_char == 'd') { // code for reading in obj_distance
+    if (data_string != "")
+      obj_string = data_string;
+    data_string = "";
   }
-  if (dataC == 'v') { // code for reading in measuredSpeed
-    if (data != "")
-      spd = data;
-    data = "";
+  if (data_char == 'v') { // code for reading in measuredSpeed
+    if (data_string != "")
+      spd_string = data_string;
+    data_string = "";
   }
-  if (dataC == 't') { // code for reading in travDistance
-    if (data != "")
-      tDis = data;
-    data = "";
+  if (data_char == 't') { // code for reading in trav_distance
+    if (data_string != "")
+      dis_string = data_string;
+    data_string = "";
   }
 }
 void objectSpotted() { // displays popup when object is detected
-  //dataB = 'p';
-  if (dataB != 'z') { // this method allows popup to display UNTIL object is no longer in the way
+  //data_filter = 'p';
+  if (data_filter != 'z') { // this method allows popup to display UNTIL object is no longer in the way
     text("Objected Spotted!", 400, 310);
-    image(c3poImg, 525, 285);
+    image(c3po_image, 525, 285);
     stop = true;
-  } else if (dataB == 'z')
+  } else if (data_filter == 'z')
     stop = false;
 }
 
-void referenceSpeed() {
-  if (referenceSpeed != prevReferenceSpeed) { // whenever the reference speed slider is changed, send it to the arduino
-    prevReferenceSpeed = referenceSpeed;
-    myClient.write('v');
-    String speedStr = referenceSpeed + "v";
-    myClient.write(speedStr);
+void reference_speed() {
+  if (reference_speed != prev_reference_speed) { // whenever the reference speed slider is changed, send it to the arduino
+    prev_reference_speed = reference_speed;
+    client.write('v');
+    String speedStr = reference_speed + "v";
+    client.write(speedStr);
   }
 }
 void displayTelemetry() {
@@ -204,14 +205,14 @@ void displayTelemetry() {
   text ("R2-Z2", 400, 30);
   textSize(24);
   text("Connection:", 400, 60);
-  if (followMode)
+  if (follow_mode)
     text("Mode: Reference Object", 400, 90);
   else
     text("Mode: Reference Speed", 400, 90);
-  text ("Object Distance (cm): " + objDistance, 400, 120);
-  text("Distance Travelled (m): " + String.format("%.2f", travDistance), 400, 150);
-  text("Velocity (m/s): " + String.format("%.2f", buggySpeed), 400, 180);
-  text("Reference Speed (m/s): " +  String.format("%.2f", referenceSpeed ), 400, 210);
+  text ("Object Distance (cm): " + obj_distance, 400, 120);
+  text("Distance Travelled (m): " + String.format("%.2f", trav_distance), 400, 150);
+  text("Velocity (m/s): " + String.format("%.2f", buggy_speed), 400, 180);
+  text("Reference Speed (m/s): " +  String.format("%.2f", reference_speed ), 400, 210);
 }
 void noConnection() { // popup when attempting to use buttons while disconnected from server
   textAlign(CENTER);
