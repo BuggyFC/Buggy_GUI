@@ -43,6 +43,7 @@ String data_string = "";
 String obj_string= "";
 String spd_string = "";
 String dis_string = "";
+String log_string = "";
 
 void setup() {
   size (800, 576); // (width,height)
@@ -178,10 +179,17 @@ void receiveData(){
       dis_string = data_string;
     data_string = "";
   }
+  if (data_char == 'y') {
+    if (data_string != ""){
+        log_string = data_string;
+        // display string - > maybe use filter variable
+    }
+    data_string = "";
+  }
 }
 void objectSpotted() { // displays popup when object is detected
   //data_filter = 'p';
-  if (data_filter != 'z') { // this method allows popup to display UNTIL object is no longer in the way
+  if (data_filter != '') { // this method allows popup to display UNTIL object is no longer in the way
     text("Objected Spotted!", 400, 310);
     image(c3po_image, 525, 285);
     stop = true;
