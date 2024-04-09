@@ -43,7 +43,10 @@ String data_string = "";
 String obj_string= "";
 String spd_string = "";
 String dis_string = "";
-String log_string = "";
+boolean tag1 = false;
+boolean tag2 = false;
+boolean tag3 = false;
+boolean tag4 = false;
 
 void setup() {
   size (800, 576); // (width,height)
@@ -60,10 +63,13 @@ void setup() {
 void draw() {
   it_count++;
   if (it_count == 1) // required to prevent buttons from becoming too laggy
-    delay(0); // delay between startup screen and main screen ONLY ON FIRST ITERATION OF DRAW
-  if ((millis() > current_time + 1000)) // refreshes screen 1 second after a button is pressed
+    delay(2500); // delay between startup screen and main screen ONLY ON FIRST ITERATION OF DRAW
+  if ((millis() > current_time + 1000)) { // refreshes screen 1 second after a button is pressed  
     image(main_image, 0, 0);
+    //show_tag_data = !show_tag_data;
+  }
 
+  //println(log_string);
   receiveData();
   if (obj_string!= "")
     obj_distance = Integer.valueOf(obj_string);
@@ -71,11 +77,11 @@ void draw() {
     buggy_speed = Float.valueOf(spd_string);
   if (dis_string != "")
     trav_distance = Float.valueOf(dis_string) / 100;
-    
+
   objectSpotted(); // checks if object is spotted or not
   reference_speed = cp5.getController("Speed").getValue();
   reference_speed(); // sends reference speed to arduino
-  displayTelemetry(); 
+  displayTelemetry();
 
   if (client.active()) // if client is connected, draw a tick
     drawTick(connection_w-5, connection_h, connection_w+10, connection_h-10);
@@ -116,7 +122,7 @@ void addButtons() { // displays buttons
   cp5.addSlider("Speed")
     .setPosition(200, 230)
     .setSize(400, 50)
-    .setRange(0.05 , 0.15)
+    .setRange(0.05, 0.15)
     .setColorBackground(color(4, 84, 168))
     .setNumberOfTickMarks(10)
     ;
@@ -143,7 +149,7 @@ void STOP() { // logic for stop button
   fill(0, 0, 0);
   if (client.active()) {
     text("BUGGY STOPPED", 400, 370);
-    client.write('0');
+    client.write('s');
   } else noConnection() ;
 }
 
@@ -153,17 +159,21 @@ void START() { // logic for start button
   fill(0, 0, 0);
   if (client.active()) {
     text("BUGGY STARTED", 400, 340);
-    client.write('1');
+    client.write('w');
   } else noConnection();
   stop = false;
 }
-void receiveData(){
+void receiveData() {
   data_char = client.readChar(); // code for reading in data
+  //data_char = 'y';
+  //println(data_char);
+  //println(data_string);
   if ( (data_char >= '0') && (data_char <= '9') || (data_char == '.') ) // filters to read in integers and floats
     data_string = data_string + data_char;
   // 'o' is received if object is spotted, 'z' is received if path is clear
   if ( (data_char == 'o') || (data_char == 'z') ) // filters out null and other chars being read in
     data_filter = data_char;
+  //println(data_filter);
   if (data_char == 'd') { // code for reading in obj_distance
     if (data_string != "")
       obj_string = data_string;
@@ -179,21 +189,53 @@ void receiveData(){
       dis_string = data_string;
     data_string = "";
   }
-  if (data_char == 'y') {
-    if (data_string != ""){
-        log_string = data_string;
-        // display string - > maybe use filter variable
-    }
-    data_string = "";
+  if (data_char == 'm') {
+    tag1 = true;
+    tag2 = false;
+    tag3 = false;
+    tag4 = false;
+  }
+  if (data_char == 'n') {
+    tag1 = false;
+    tag2 = true;
+    tag3 = false;
+    tag4 = false;
+  }
+  if (data_char == 'p') {
+    tag1 = false;
+    tag2 = false;
+    tag3 = true;
+    tag4 = false;
+  }
+  if (data_char == 'q') {
+    tag1 = false;
+    tag2 = false;
+    tag3 = false;
+    tag4 = true;
+  }
+  if (data_char == 'k'){
+    tag1 = false;
+    tag2 = false;
+    tag3 = false;
+    tag4 = false;
   }
 }
+
 void objectSpotted() { // displays popup when object is detected
   //data_filter = 'p';
-  if (data_filter != '') { // this method allows popup to display UNTIL object is no longer in the way
+  //if (data_filter != ' ') { // this method allows popup to display UNTIL object is no longer in the way
+  //  text("Objected Spotted!", 400, 310);
+  //  image(c3po_image, 525, 285);
+  //  stop = true;
+  //} else if (data_filter == 'z'){
+  //  stop = false;
+  //  println("ZZZZZZZ");
+  //}
+  if (obj_distance <= 10) {
     text("Objected Spotted!", 400, 310);
     image(c3po_image, 525, 285);
     stop = true;
-  } else if (data_filter == 'z')
+  } else
     stop = false;
 }
 
@@ -221,6 +263,21 @@ void displayTelemetry() {
   text("Distance Travelled (m): " + String.format("%.2f", trav_distance), 400, 150);
   text("Velocity (m/s): " + String.format("%.2f", buggy_speed), 400, 180);
   text("Reference Speed (m/s): " +  String.format("%.2f", reference_speed ), 400, 210);
+  //if (show_tag_data && log_string != "")
+  //text(log_string, 400, 340);
+  //println(log_string);
+  if (tag1) {
+    text("Slowing Down", 400, 350);
+  }
+  if (tag2) {
+    text("Speeding Up", 400, 350);
+  }
+  if (tag3) {
+    text("Turning Right", 400, 350);
+  }
+  if (tag4) {
+    text("Turning Left", 400, 350);
+  }
 }
 void noConnection() { // popup when attempting to use buttons while disconnected from server
   textAlign(CENTER);
