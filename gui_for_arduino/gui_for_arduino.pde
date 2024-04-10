@@ -39,14 +39,14 @@ float prev_reference_speed = 0.0;
 float buggy_speed = 0.0;
 boolean stop = true;
 boolean follow_mode = false; // true = reference object, false = reference speed
-String data_string = "";
-String obj_string= "";
-String spd_string = "";
-String dis_string = "";
 boolean tag1 = false;
 boolean tag2 = false;
 boolean tag3 = false;
 boolean tag4 = false;
+String data_string = "";
+String obj_string= "";
+String spd_string = "";
+String dis_string = "";
 
 void setup() {
   size (800, 576); // (width,height)
@@ -64,12 +64,9 @@ void draw() {
   it_count++;
   if (it_count == 1) // required to prevent buttons from becoming too laggy
     delay(2500); // delay between startup screen and main screen ONLY ON FIRST ITERATION OF DRAW
-  if ((millis() > current_time + 1000)) { // refreshes screen 1 second after a button is pressed  
+  if ((millis() > current_time + 1000)) // refreshes screen 1 second after a button is pressed
     image(main_image, 0, 0);
-    //show_tag_data = !show_tag_data;
-  }
 
-  //println(log_string);
   receiveData();
   if (obj_string!= "")
     obj_distance = Integer.valueOf(obj_string);
@@ -81,7 +78,7 @@ void draw() {
   objectSpotted(); // checks if object is spotted or not
   reference_speed = cp5.getController("Speed").getValue();
   reference_speed(); // sends reference speed to arduino
-  displayTelemetry();
+  displayTelemetry(); // displays telemetry to screen
 
   if (client.active()) // if client is connected, draw a tick
     drawTick(connection_w-5, connection_h, connection_w+10, connection_h-10);
@@ -165,72 +162,59 @@ void START() { // logic for start button
 }
 void receiveData() {
   data_char = client.readChar(); // code for reading in data
-  //data_char = 'y';
-  //println(data_char);
-  //println(data_string);
   if ( (data_char >= '0') && (data_char <= '9') || (data_char == '.') ) // filters to read in integers and floats
     data_string = data_string + data_char;
-  // 'o' is received if object is spotted, 'z' is received if path is clear
-  if ( (data_char == 'o') || (data_char == 'z') ) // filters out null and other chars being read in
-    data_filter = data_char;
   //println(data_filter);
-  if (data_char == 'd') { // code for reading in obj_distance
+  switch (data_char) {
+  case 'd':
     if (data_string != "")
       obj_string = data_string;
     data_string = "";
-  }
-  if (data_char == 'v') { // code for reading in measuredSpeed
+    break;
+  case 'v':
     if (data_string != "")
       spd_string = data_string;
     data_string = "";
-  }
-  if (data_char == 't') { // code for reading in trav_distance
+    break;
+  case 't':
     if (data_string != "")
       dis_string = data_string;
     data_string = "";
-  }
-  if (data_char == 'm') {
+    break;
+  case 'm':
     tag1 = true;
     tag2 = false;
     tag3 = false;
     tag4 = false;
-  }
-  if (data_char == 'n') {
+    break;
+  case 'n':
     tag1 = false;
     tag2 = true;
     tag3 = false;
     tag4 = false;
-  }
-  if (data_char == 'p') {
+    break;
+  case 'p':
     tag1 = false;
     tag2 = false;
     tag3 = true;
     tag4 = false;
-  }
-  if (data_char == 'q') {
+    break;
+  case 'q':
     tag1 = false;
     tag2 = false;
     tag3 = false;
     tag4 = true;
-  }
-  if (data_char == 'k'){
+    break;
+  case 'k':
     tag1 = false;
     tag2 = false;
     tag3 = false;
     tag4 = false;
+    break;
   }
 }
 
 void objectSpotted() { // displays popup when object is detected
-  //data_filter = 'p';
-  //if (data_filter != ' ') { // this method allows popup to display UNTIL object is no longer in the way
-  //  text("Objected Spotted!", 400, 310);
-  //  image(c3po_image, 525, 285);
-  //  stop = true;
-  //} else if (data_filter == 'z'){
-  //  stop = false;
-  //  println("ZZZZZZZ");
-  //}
   if (obj_distance <= 10) {
     text("Objected Spotted!", 400, 310);
     image(c3po_image, 525, 285);
