@@ -37,7 +37,6 @@ float trav_distance = 0.0;
 float reference_speed = 0.0;
 float prev_reference_speed = 0.0;
 float buggy_speed = 0.0;
-boolean stop = true;
 boolean follow_mode = false; // true = reference object, false = reference speed
 boolean tag1 = false;
 boolean tag2 = false;
@@ -57,7 +56,8 @@ void setup() {
   c3po_image = loadImage("c3po.png");
   startup(); // displays intro screen
   addButtons(); // displays buttons after startup
-  client.write('l');
+  if (client.active())
+    client.write('l');
 }
 
 void draw() {
@@ -77,7 +77,7 @@ void draw() {
 
   objectSpotted(); // checks if object is spotted or not
   reference_speed = cp5.getController("Speed").getValue();
-  reference_speed(); // sends reference speed to arduino
+  referenceSpeed(); // sends reference speed to arduino
   displayTelemetry(); // displays telemetry to screen
 
   if (client.active()) // if client is connected, draw a tick
@@ -140,7 +140,6 @@ void Speed() { // logic for reference speed slider
 }
 
 void STOP() { // logic for stop button
-  stop = true;
   textAlign(CENTER);
   current_time = millis();
   fill(0, 0, 0);
@@ -158,13 +157,11 @@ void START() { // logic for start button
     text("BUGGY STARTED", 400, 340);
     client.write('w');
   } else noConnection();
-  stop = false;
 }
 void receiveData() {
   data_char = client.readChar(); // code for reading in data
   if ( (data_char >= '0') && (data_char <= '9') || (data_char == '.') ) // filters to read in integers and floats
     data_string = data_string + data_char;
-  //println(data_filter);
   switch (data_char) {
   case 'd':
     if (data_string != "")
@@ -218,12 +215,9 @@ void objectSpotted() { // displays popup when object is detected
   if (obj_distance <= 10) {
     text("Objected Spotted!", 400, 310);
     image(c3po_image, 525, 285);
-    stop = true;
-  } else
-    stop = false;
+  }
 }
-
-void reference_speed() {
+void referenceSpeed() {
   if (reference_speed != prev_reference_speed) { // whenever the reference speed slider is changed, send it to the arduino
     prev_reference_speed = reference_speed;
     client.write('v');
@@ -247,9 +241,6 @@ void displayTelemetry() {
   text("Distance Travelled (m): " + String.format("%.2f", trav_distance), 400, 150);
   text("Velocity (m/s): " + String.format("%.2f", buggy_speed), 400, 180);
   text("Reference Speed (m/s): " +  String.format("%.2f", reference_speed ), 400, 210);
-  //if (show_tag_data && log_string != "")
-  //text(log_string, 400, 340);
-  //println(log_string);
   if (tag1) {
     text("Slowing Down", 400, 350);
   }
